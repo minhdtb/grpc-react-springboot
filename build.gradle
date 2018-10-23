@@ -1,0 +1,91 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.6.RELEASE'
+    }
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("com.google.protobuf:protobuf-gradle-plugin:0.8.6")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'idea'
+
+group = 'com.minhdtb'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+ext {
+    springCloudVersion = 'Finchley.SR1'
+}
+
+dependencies {
+    runtimeOnly('org.springframework.boot:spring-boot-devtools')
+    compileOnly('org.projectlombok:lombok')
+    compile('org.lognet:grpc-spring-boot-starter:2.4.2')
+    compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+sourceSets {
+    main {
+        proto {
+            srcDir 'protos'
+        }
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.6.1'
+    }
+
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.15.1'
+        }
+    }
+
+    generateProtoTasks {
+        ofSourceSet('main').each { task ->
+            task.builtins {
+                java {
+                    outputSubDir = 'java'
+                }
+            }
+            task.plugins {
+                grpc {
+                    outputSubDir = 'java'
+                }
+            }
+        }
+    }
+
+    generatedFilesBaseDir = "$projectDir/src/"
+}
+
+task generateProtoTs(type: Exec) {
+    def input = './protos'
+    def output = './src/main/webapp'
+    commandLine '/bin/bash', './generator.sh', input, output
+}
+
+build.dependsOn generateProtoTs

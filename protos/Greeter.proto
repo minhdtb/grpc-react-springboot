@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package com.minhdtb.demo.protos;
+
+service Greeter {
+    rpc SayHello (HelloRequest) returns (HelloReply) {
+    }
+}
+
+message HelloRequest {
+    string test1 = 1;
+    string test2 = 2;
+}
+
+message HelloReply {
+
+}
